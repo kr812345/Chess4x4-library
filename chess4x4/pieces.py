@@ -1,42 +1,64 @@
-# chess4x4/pieces.py
+from __future__ import annotations
+from typing import List, Tuple
+from abc import ABC, abstractmethod
+from .utils import pos_in_bounds
+from .board import Board
 
-class Piece:
-    def __init__(self, color, name, position):
-        self.color = color  # "W" or "B"
-        self.name = name    # "K" for King, "R" for Rook
-        self.position = position  # (row, col)
+Position = Tuple[int, int]
 
-    def get_symbol(self):
-        return f"{self.color}{self.name}"
+
+class Piece(ABC):
+    def __init__(self, color: str, symbol: str):
+        if color not in ("white", "black"):
+            raise ValueError("color must be 'white' or 'black'")
+        self.color = color
+        self.symbol = symbol
+
+    @abstractmethod
+    def get_moves(self, board: Board, position: Position) -> List[Position]:
+        """Return a list of valid end positions for this piece from `position` on `board`."""
+        pass
 
 
 class King(Piece):
-    def __init__(self, color, position):
-        super().__init__(color, "K", position)
+    def __init__(self, color: str):
+        super().__init__(color, "K")
 
-    def possible_moves(self, board_size=4):
-        r, c = self.position
-        moves = []
-        for dr in [-1, 0, 1]:
-            for dc in [-1, 0, 1]:
+    def get_moves(self, board: Board, position: Position) -> List[Position]:
+        moves: List[Position] = []
+        r, c = position
+        for dr in (-1, 0, 1):
+            for dc in (-1, 0, 1):
                 if dr == 0 and dc == 0:
                     continue
                 nr, nc = r + dr, c + dc
-                if 0 <= nr < board_size and 0 <= nc < board_size:
+                if not pos_in_bounds((nr, nc)):
+                    continue
+                target = board.get_piece((nr, nc))
+                # can move to empty or capture opponent
+                if target is None or target.color != self.color:
                     moves.append((nr, nc))
         return moves
 
 
 class Rook(Piece):
-    def __init__(self, color, position):
-        super().__init__(color, "R", position)
+    def __init__(self, color: str):
+        super().__init__(color, "R")
 
-    def possible_moves(self, board_size=4):
-        r, c = self.position
-        moves = []
-        for i in range(board_size):
-            if i != r:
-                moves.append((i, c))
-            if i != c:
-                moves.append((r, i))
+    def get_moves(self, board: Board, position: Position) -> List[Position]:
+        moves: List[Position] = []
+        r, c = position
+        # four directions
+        for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nr, nc = r + dr, c + dc
+            while pos_in_bounds((nr, nc)):
+                target = board.get_piece((nr, nc))
+                if target is None:
+                    moves.append((nr, nc))
+                else:
+                    if target.color != self.color:
+                        moves.append((nr, nc))
+                    break
+                nr += dr
+                nc += dc
         return moves
