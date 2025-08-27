@@ -1,5 +1,3 @@
-Here’s your updated documentation in Markdown, including the intro you provided at the top:
-
 ````markdown
 # Chess4x4
 
@@ -123,7 +121,3 @@ Please make sure:
 
 This project is licensed under the MIT License.
 
-```
-
-Do you want me to also create a **separate `CONTRIBUTING.md` file** with contribution guidelines, or keep it inside the main documentation only?
-```
